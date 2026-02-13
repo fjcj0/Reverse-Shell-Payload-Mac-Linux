@@ -6,12 +6,16 @@ const morgan = require('morgan');
 const app = express();
 const PORT = 2020;
 const UPLOAD_FOLDER = path.join(__dirname, "uploads");
+const UPLOAD_AUDIOS = path.join(__dirname,"audios");
 const LOG_FILE = path.join(__dirname, "locations.log");
 if (!fs.existsSync(UPLOAD_FOLDER)) {
   fs.mkdirSync(UPLOAD_FOLDER);
 }
 if (!fs.existsSync(LOG_FILE)) {
   fs.writeFileSync(LOG_FILE, ""); 
+}
+if(!fs.existsSync(UPLOAD_AUDIOS)){
+    fs.mkdirSync(UPLOAD_AUDIOS);
 }
 app.use(morgan('dev'));
 app.use(express.json());  
