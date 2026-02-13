@@ -37,18 +37,7 @@ banner = r"""
      \)           (/
 
 ======================[ HELP ]=======================
-  [help]
-      - Show this help menu.
-  [get-location]
-      - Get victim location.
-  [exit]
-      - Exit from victim's device.
-  [send example.txt example2.txt]
-      - Send many file to your server from victim's device.
-  [put-files-desktop example1.txt example2.txt]
-      - Put files on victim's device from your mailicous server.
-  [clear]
-      - Clear console.
+
 =====================================================
 """
 async def open_camera():
