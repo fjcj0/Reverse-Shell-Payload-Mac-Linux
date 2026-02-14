@@ -74,7 +74,7 @@ const wss = new WebSocket.Server({
   port: 8765  
 });
 wss.on('connection', ws => {
-  console.log('connected :)');
+  console.log('victim connected :)');
   ws.on('message', message => {
     wss.clients.forEach(client => {
       if (client.readyState === WebSocket.OPEN) {

