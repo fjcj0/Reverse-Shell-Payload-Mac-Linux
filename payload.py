@@ -14,7 +14,7 @@ from PIL import ImageGrab
 import threading
 SERVER_URL = "192.168.88.105:2020"
 WEBSOCKET_URL="ws://192.168.88.105:8765"
-PORT="12345"
+PORT=12345
 IP_ADDRESS="192.168.88.105"
 banner = r"""
 ██████╗  █████╗  ██████╗██╗  ██╗██████╗  ██████╗  ██████╗ ██████╗ 
