@@ -32,4 +32,38 @@ const storage = multer.diskStorage({
   },
 });
 const upload = multer({ storage: storage });
+app.post("/get-location", (req, res) => {
+  try {
+    const location = req.body;
+    if (!location || !location.lat || !location.lng) {
+      return res.status(400).json({ success: false, message: "Invalid location data" });
+    }
+    const timestamp = new Date().toISOString();
+    const logEntry = `[${timestamp}] 
+Source: ${location.source || "unknown"}
+Latitude: ${location.lat}
+Longitude: ${location.lng}
+City: ${location.city || "N/A"}
+Country: ${location.country || "N/A"}
+-----------------------------------
+`;
+    fs.appendFileSync(LOG_FILE, logEntry);
+    res.status(200).json({ success: true, message: "Location saved successfully" });
+  } catch (err) {
+    console.error("Error saving location:", err);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+});
+app.post("/upload", upload.array("files"), (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({ success: false, message: "No files uploaded" });
+  }
+  res.status(200).json({
+    success: true,
+    files: req.files.map(f => ({
+      filename: f.filename,
+      path: `/uploads/${f.filename}`
+    }))
+  });
+});
 app.listen(PORT,'0.0.0.0',()=>console.log(`Server running at: http://0.0.0.0:${PORT}`));
