@@ -73,13 +73,24 @@ const wss = new WebSocket.Server({
    host: '0.0.0.0',
   port: 8765  
 });
+let latestFrame = null;
 wss.on('connection', ws => {
-  console.log('victim connected :)');
-  ws.on('message', message => {
-    wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(message);
-      }
-    });
+  console.log('Python connected');
+  ws.on('message', (data) => {
+    latestFrame = data; 
   });
+});
+app.get('/video_feed', (req, res) => {
+  res.writeHead(200, {
+    'Content-Type': 'multipart/x-mixed-replace; boundary=frame',
+    'Cache-Control': 'no-cache',
+    'Connection': 'close'
+  });
+  const interval = setInterval(() => {
+    if (!latestFrame) return;
+    res.write(`--frame\r\nContent-Type: image/jpeg\r\nContent-Length: ${latestFrame.length}\r\n\r\n`);
+    res.write(latestFrame);
+    res.write('\r\n');
+  }, 33); 
+  req.on('close', () => clearInterval(interval));
 });

