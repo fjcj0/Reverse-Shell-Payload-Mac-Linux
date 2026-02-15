@@ -2,7 +2,6 @@ import socket,os,pty
 import cv2
 import asyncio
 import websockets
-import base64
 import random
 import subprocess
 import json

