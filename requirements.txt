@@ -1,0 +1,5 @@
+opencv-python
+websockets
+geocoder
+gps
+Pillow
