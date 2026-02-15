@@ -1,4 +1,4 @@
-import socket,os,pty
+import socket,os
 import cv2
 import asyncio
 import websockets
