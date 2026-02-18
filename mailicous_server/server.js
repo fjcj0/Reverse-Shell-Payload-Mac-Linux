@@ -24,20 +24,16 @@ app.use(express.text());
 app.use("/uploads", express.static(UPLOAD_IMAGES));
 app.use("/audios", express.static(UPLOAD_AUDIOS));
 app.use("/videos", express.static(UPLOAD_VIDEOS));
-app.use(express.static("templates"));
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     let uploadPath = UPLOAD_IMAGES;
     if (file.mimetype.startsWith("image/")) {
       uploadPath = UPLOAD_IMAGES;
-    } 
-    else if (file.mimetype.startsWith("audio/")) {
+    } else if (file.mimetype.startsWith("audio/")) {
       uploadPath = UPLOAD_AUDIOS;
-    } 
-    else if (file.mimetype.startsWith("video/")) {
+    } else if (file.mimetype.startsWith("video/")) {
       uploadPath = UPLOAD_VIDEOS;
     }
-
     cb(null, uploadPath);
   },
   filename: function (req, file, cb) {
@@ -48,19 +44,33 @@ const storage = multer.diskStorage({
 });
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 50 * 1024 * 1024 }, 
-  fileFilter: function (req, file, cb) {
-    if (file.mimetype.startsWith("image/") || file.mimetype.startsWith("audio/") || file.mimetype.startsWith("video/")) {
-      cb(null, true);
-    } else {
-      cb(new Error("Unsupported file type"), false);
-    }
+  limits: { fileSize: 50 * 1024 * 1024 }
+});
+app.post("/upload", upload.array("files"), (req, res) => {
+  if (!req.files || req.files.length === 0) {
+    return res.status(400).json({
+      success: false,
+      message: "No files uploaded"
+    });
   }
+  res.status(200).json({
+    success: true,
+    files: req.files.map(file => ({
+      filename: file.filename,
+      type: file.mimetype,
+      path:
+        file.mimetype.startsWith("image/")
+          ? `/uploads/${file.filename}`
+          : file.mimetype.startsWith("audio/")
+          ? `/audios/${file.filename}`
+          : `/videos/${file.filename}`
+    }))
+  });
 });
 app.post("/get-location", (req, res) => {
   try {
     const location = req.body;
-    if (!location || !location.lat || !location.lng) {
+    if (!location || location.lat == null || location.lng == null) {
       return res.status(400).json({
         success: false,
         message: "Invalid location data"
@@ -88,27 +98,6 @@ Country: ${location.country || "N/A"}
     });
   }
 });
-app.post("/upload", upload.array("files"), (req, res) => {
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({
-      success: false,
-      message: "No files uploaded"
-    });
-  }
-  res.status(200).json({
-    success: true,
-    files: req.files.map(file => ({
-      filename: file.filename,
-      type: file.mimetype,
-      path:
-        file.mimetype.startsWith("image/")
-          ? `/uploads/${file.filename}`
-          : file.mimetype.startsWith("audio/")
-          ? `/audios/${file.filename}`
-          : `/videos/${file.filename}`
-    }))
-  });
-});
 const wss = new WebSocket.Server({
   host: "0.0.0.0",
   port: 8765
@@ -133,7 +122,7 @@ app.get("/video_feed", (req, res) => {
     res.write(`Content-Length: ${latestFrame.length}\r\n\r\n`);
     res.write(latestFrame);
     res.write("\r\n");
-  }, 33); 
+  }, 33);
   req.on("close", () => clearInterval(interval));
 });
 app.listen(PORT, "0.0.0.0", () => {

