@@ -15,11 +15,11 @@ import threading
 from scipy.io.wavfile import write
 import sounddevice as sd
 import sys
-SERVER_URL = "192.168.88.104:2020"
-WEBSOCKET_URL="ws://192.168.88.104:8765"
-WEBSOCKET_AUDIO="ws://192.168.88.104:8766"
+SERVER_URL = "192.168.88.101:2020"
+WEBSOCKET_URL="ws://192.168.88.101:8765"
+WEBSOCKET_AUDIO="ws://192.168.88.101:8766"
 PORT=12345
-IP_ADDRESS="192.168.88.104"
+IP_ADDRESS="192.168.88.101"
 banner = r"""
 ██████╗  █████╗  ██████╗██╗  ██╗██████╗  ██████╗  ██████╗ ██████╗ 
 ██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔══██╗██╔═══██╗██╔═══██╗██╔══██╗
