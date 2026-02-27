@@ -21,6 +21,7 @@ if (!fs.existsSync(LOG_FILE)) {
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.text());
+app.use(express.static(path.join(__dirname, "templates")));
 app.use("/uploads", express.static(UPLOAD_IMAGES));
 app.use("/audios", express.static(UPLOAD_AUDIOS));
 app.use("/videos", express.static(UPLOAD_VIDEOS));
