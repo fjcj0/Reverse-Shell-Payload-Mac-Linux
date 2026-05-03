@@ -6,3 +6,5 @@ gps
 pillow
 scipy
 sounddevice
+tts==0.22.0
+numpy==1.22.0
